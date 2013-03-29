@@ -3,14 +3,14 @@
 using namespace std;
 
 /**
- * printArray : print all the element in array. Used for test only.
+ *  Print all the element in array. Used for test only.
  * 	array : the array that will be printed.
  * 	length: the length of the input array.
  */
 void printArray( float * array, const int length );
 
 /**
- *  merge  : merge two arrays and arrange all the elements in ascending order.
+ *  Merge two arrays and arrange all the elements in ascending order.
  *   left  : the pointer of first array to be merged.
  *   right : the pointer of the second array to be merged.
  *   leftl : the last index of the first array.
@@ -20,7 +20,7 @@ void printArray( float * array, const int length );
 float * merge( float * left, const int leftl, float * right, const int rightl );
 
 /**
- *  merge sort: 
+ *  Merge Sort. 
  *  	 array: the pointer of array that will be sorted.
  * 	 begin: the first index of the subarray that will be sorted.
  *	 end  : the last index of the subarray that will be sorted.
