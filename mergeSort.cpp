@@ -47,7 +47,7 @@ float * merge_sort( float *array, const int begin, const int end, int nthread)
 	{
 		#pragma omp parallel sections num_threads(nthread)
 		{
-			cout << "Total threads: " << omp_get_num_threads() << endl;
+			//cout << "Total threads: " << omp_get_num_threads() << endl;
 			#pragma omp section
 			{
 				left = merge_sort( array, begin, mid, nthread/2 );
@@ -75,7 +75,7 @@ float * merge_sort( float *array, const int begin, const int end, int nthread)
 
 float * merge( float * left, const int leftl, float *right, const int rightl )
 {
-	cout << "Thread # in merge function: " << omp_get_thread_num() << endl;
+//	cout << "Thread # in merge function: " << omp_get_thread_num() << endl;
 
 	float *array = new float[leftl + rightl + 2];
 	int pos = 0;	// tracer of the result array
@@ -129,11 +129,11 @@ void printArray( float * array, const int length )
 }
 
 int main() {
-	float *array = new float[100];
-	for(int i = 0; i < 100; i++ )
+	float *array = new float[10000000];
+	for(int i = 0; i < 10000000; i++ )
 	{
 		array[i] = (float)rand()/ (float) RAND_MAX;
-		cout << array[i] << " ";
+		//cout << array[i] << " ";
 	}
 /*
 	array[0] = 0.123;
@@ -147,9 +147,12 @@ int main() {
 	array[8] = 0.223;
 	array[9] = 0.423;
 */
-	float *result = merge_sort(array, 0, 99, 12);
-
-	printArray(result, 100);
+	double start = omp_get_wtime();
+	float *result = merge_sort(array, 0,9999999, 16);
+	double end = omp_get_wtime();
+	//printArray(result, 10000);
+	//cout << "First number: " << result[0];
+	cout << "total running time: " << end-start << endl;
 
 	return 0;
 }
