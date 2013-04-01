@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 
 using namespace std;
 
@@ -26,7 +27,7 @@ float * merge( float * left, const int leftl, float * right, const int rightl );
  *	 end  : the last index of the subarray that will be sorted.
  *  return    : new sorted array.
  */
-float * merge_sort( float *array, const int begin, const int end)
+float * merge_sort( float *array, const int begin, const int end, int nthread)
 {
 	if ( begin == end )
 	{
@@ -37,19 +38,29 @@ float * merge_sort( float *array, const int begin, const int end)
 
 	int mid = (begin + end) / 2;
 	
-	// insert parallel omp section here
-	float *left = merge_sort( array, begin, mid );
+	float *left = NULL;
+	float *right = NULL;
+	float *result = NULL;
 
-	// insert parallel omp section here
-	float *right = merge_sort( array, mid+1, end );
-
-	float *result = merge( left, mid-begin, right, end-mid-1 );
-
+#pragma omp parallel num_threads(nthread)
+{
+	//cout << "number of threads " << omp_get_num_threads() << endl;
+//	int nthreads = omp_get_num_threads();
+//	cout << "Thread #: " << omp_get_thread_num() << endl;
+//	cout << "N of threads: " << nthreads << endl;
+#pragma omp task
+		left = merge_sort( array, begin, mid, nthread/2 );
+#pragma omp task
+		right = merge_sort( array, mid+1, end, nthread/2 );
+}
+	result = merge( left, mid-begin, right, end-mid-1 );
 	return result;
 }
 
 float * merge( float * left, const int leftl, float *right, const int rightl )
 {
+	cout << "Thread # in merge function: " << omp_get_thread_num() << endl;
+
 	float *array = new float[leftl + rightl + 2];
 	int pos = 0;	// tracer of the result array
 	int l = 0;	// tracer of the left array
@@ -102,7 +113,13 @@ void printArray( float * array, const int length )
 }
 
 int main() {
-	float *array = new float[10];
+	float *array = new float[100];
+	for(int i = 0;i < 100; i++ )
+	{
+		array[i] = (float)rand()/ (float) RAND_MAX;
+		cout << array[i] << " ";
+	}
+/*
 	array[0] = 0.123;
 	array[1] = 0.124;
 	array[2] = 0.123;
@@ -113,10 +130,10 @@ int main() {
 	array[7] = 0.133;
 	array[8] = 0.223;
 	array[9] = 0.423;
+*/
+	float *result = merge_sort(array, 0, 100, 16);
 
-	float *result = merge_sort(array, 0, 9);
-
-	printArray(result, 10);
+	printArray(result, 100);
 
 	return 0;
 }
