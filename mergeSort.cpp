@@ -1,5 +1,6 @@
 #include <iostream>
 #include <omp.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -42,17 +43,32 @@ float * merge_sort( float *array, const int begin, const int end, int nthread)
 	float *right = NULL;
 	float *result = NULL;
 
-#pragma omp parallel num_threads(nthread)
-{
-	//cout << "number of threads " << omp_get_num_threads() << endl;
-//	int nthreads = omp_get_num_threads();
-//	cout << "Thread #: " << omp_get_thread_num() << endl;
-//	cout << "N of threads: " << nthreads << endl;
-#pragma omp task
-		left = merge_sort( array, begin, mid, nthread/2 );
-#pragma omp task
-		right = merge_sort( array, mid+1, end, nthread/2 );
-}
+	if (nthread > 1)
+	{
+		#pragma omp parallel sections num_threads(nthread)
+		{
+			cout << "Total threads: " << omp_get_num_threads() << endl;
+			#pragma omp section
+			{
+				left = merge_sort( array, begin, mid, nthread/2 );
+			}
+			#pragma omp section
+			{
+				right = merge_sort( array, mid+1, end, nthread - nthread/2 );
+			}
+		}
+	} else
+	{
+		left = merge_sort( array, begin, mid, 1);
+		right = merge_sort( array, mid+1, end, 1);
+	}
+	
+	if(left == NULL)
+	{
+		cout << "left is null" << endl;
+		exit(0);
+	}
+
 	result = merge( left, mid-begin, right, end-mid-1 );
 	return result;
 }
@@ -114,7 +130,7 @@ void printArray( float * array, const int length )
 
 int main() {
 	float *array = new float[100];
-	for(int i = 0;i < 100; i++ )
+	for(int i = 0; i < 100; i++ )
 	{
 		array[i] = (float)rand()/ (float) RAND_MAX;
 		cout << array[i] << " ";
@@ -131,7 +147,7 @@ int main() {
 	array[8] = 0.223;
 	array[9] = 0.423;
 */
-	float *result = merge_sort(array, 0, 100, 16);
+	float *result = merge_sort(array, 0, 99, 12);
 
 	printArray(result, 100);
 
