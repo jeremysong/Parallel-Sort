@@ -47,7 +47,7 @@ float * merge_sort( float *array, const int begin, const int end, int nthread)
 	{
 		#pragma omp parallel sections num_threads(nthread)
 		{
-			//cout << "Total threads: " << omp_get_num_threads() << endl;
+			cout << "Total threads: " << omp_get_num_threads() << endl;
 			#pragma omp section
 			{
 				left = merge_sort( array, begin, mid, nthread/2 );
