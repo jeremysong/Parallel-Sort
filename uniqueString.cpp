@@ -17,7 +17,7 @@ using namespace std;
 class stringPair {
 private:
 	int freq;		// frequency of this string
-	char str[STRINGMAX];		// string content
+	char str[STRINGMAX];	// string content
 	stringPair *next;	// point to next stringPair
 				// whose string has same hash value
 public:
@@ -43,7 +43,17 @@ public:
 	void setString(string s) { strcpy(str, s.c_str()); }
 };
 
+/*
+ *  array to store all the unique string and frequency.
+ *  Use linked list to solve colision.
+ */
 stringPair * hashTable[HASHTABLESIZE];
+
+/*
+ *  group lock to control each memory location of hashTable
+ *
+ */
+int lock[HASHTABLESIZE];
 
 /**
  * A function used to generate hash value of given string
@@ -58,7 +68,7 @@ unsigned int hash(string str)
 		hash = char_int*10*tracer+hash;
 		tracer++;
 	}
-	hash = hash % 10000000;
+	hash = hash % HASHTABLESIZE;
 	//cout << str << endl;
 	//cout << hash << endl;
 	return hash;
@@ -66,6 +76,13 @@ unsigned int hash(string str)
 
 void addToHashTable(int hash, string str)
 {
+	/*
+	 *  Busy waiting if the corresponding memory location is locked
+	 */
+	while ( lock[hash] == 1 );
+
+#pragma omp atomic
+	lock[hash] = 1;
 	if (hashTable[hash] == NULL)
 	{
 		//cout << str << " added to hashTable" << endl;
@@ -87,6 +104,8 @@ void addToHashTable(int hash, string str)
 			p = p->getNext();
 		}
 	}
+#pragma omp atomic
+	lock[hash] = 0;
 }
 
 /*
@@ -103,6 +122,11 @@ void map(string *content, int nthreads)
 		if (content[i].length() != 0)
 		{
 			string str = content[i];
+			/*
+			 *  Use critical here to prevent that more than
+			 *  one threads access the same memory location
+			 */
+			#pragma omp critical
 			addToHashTable(hash(str), str);
 		}
 	}
@@ -181,6 +205,11 @@ int main(int argc, char **argv)
 		linenum++;
 	}
 
+	for(int i = 0; i < HASHTABLESIZE; i++)
+	{
+		lock[i] = 0;
+	}
+
 	double start = omp_get_wtime();
 
 	map(content, nthreads);
@@ -189,9 +218,6 @@ int main(int argc, char **argv)
 	double end = omp_get_wtime();
 
 	cout << "Total running time: " << end-start << endl;
-	// for test only
-	//printFirstStringPair();
-	//printAllStringPair();
 
 	return 0;
 }
