@@ -8,8 +8,8 @@
 using namespace std;
 
 #define STRINGMAX 1024
-#define FILELINE 10000
-#define HASHTABLESIZE 10000000
+#define FILELINE 50000
+#define HASHTABLESIZE 10000
 
 /**
  *  A class to hold each string and correponding frequency
@@ -49,11 +49,9 @@ public:
  */
 stringPair * hashTable[HASHTABLESIZE];
 
-/*
- *  group lock to control each memory location of hashTable
- *
- */
 int lock[HASHTABLESIZE];
+
+omp_lock_t lock_group[HASHTABLESIZE];
 
 /**
  * A function used to generate hash value of given string
@@ -76,36 +74,50 @@ unsigned int hash(string str)
 
 void addToHashTable(int hash, string str)
 {
-	/*
-	 *  Busy waiting if the corresponding memory location is locked
-	 */
-	while ( lock[hash] == 1 );
-
-#pragma omp atomic
-	lock[hash] = 1;
+	//while(lock[hash] == 1)
+	//{
+		//cout << "hash: " << hash << " lock=1\n";
+	//}
+	
+	//omp_set_lock(&write_lock);
+	//lock[hash] = 1;
+	//omp_unset_lock(&write_lock);
 	if (hashTable[hash] == NULL)
 	{
 		//cout << str << " added to hashTable" << endl;
+		//omp_set_lock(&lock_group[hash]);
 		hashTable[hash] = new stringPair(str);
+		//omp_unset_lock(&lock_group[hash]);
 	} else
 	{
+		//omp_set_lock(&lock_group[hash]);
 		stringPair *p = hashTable[hash];
+		//omp_unset_lock(&lock_group[hash]);
 		while(p != NULL)
 	       	{
 			if(p->strCmp(str) == 0) {
+				//omp_set_lock(&lock_group[hash]);
 				p->addFreq();
+				//lock[hash] = 0;
+				//omp_unset_lock(&lock_group[hash]);
 				return;
 			}
 			if( p->getNext() == NULL )
 			{
+				//omp_set_lock(&lock_group[hash]);
 				p->setNext(str);
+				//lock[hash] = 0;
+				//omp_unset_lock(&lock_group[hash]);
 				return;
 			}
+			//omp_set_lock(&write_lock);
 			p = p->getNext();
+			//omp_unset_lock(&write_lock);
 		}
 	}
-#pragma omp atomic
-	lock[hash] = 0;
+	//omp_set_lock(&write_lock);
+	//lock[hash] = 0;
+	//omp_unset_lock(&write_lock);
 }
 
 /*
@@ -126,8 +138,11 @@ void map(string *content, int nthreads)
 			 *  Use critical here to prevent that more than
 			 *  one threads access the same memory location
 			 */
-			#pragma omp critical
-			addToHashTable(hash(str), str);
+			//#pragma omp critical
+			int hashValue = hash(str);
+			omp_set_lock(&lock_group[hashValue]);
+			addToHashTable(hashValue, str);
+			omp_unset_lock(&lock_group[hashValue]);
 		}
 	}
     }
@@ -205,12 +220,17 @@ int main(int argc, char **argv)
 		linenum++;
 	}
 
-	for(int i = 0; i < HASHTABLESIZE; i++)
-	{
-		lock[i] = 0;
-	}
-
 	double start = omp_get_wtime();
+#pragma omp parallel num_threads(nthreads)
+{
+	int i = 0;
+	#pragma omp for private(i)
+	for ( i = 0; i < HASHTABLESIZE; i++ )
+	{
+		omp_init_lock(&lock_group[i]);
+	}
+}
+
 
 	map(content, nthreads);
 	reduce(nthreads);
