@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define SIZE 100
+int SIZE;
 
 /**
  *  Print all the element in array. Used for test only.
@@ -32,7 +32,6 @@ float * merge( float * left, const int leftl, float * right, const int rightl );
  */
 float * merge_sort( float *array, const int begin, const int end, int nthread)
 {
-	cout << "MergeSort: begin= " << begin << ", end= " << end << endl;
 	if ( begin == end )
 	{
 		float *result = new float[1];
@@ -46,7 +45,7 @@ float * merge_sort( float *array, const int begin, const int end, int nthread)
 	float *right = NULL;
 	float *result = NULL;
 
-	cout << "Total threads: " << omp_get_num_threads() << endl;
+	//cout << "Total threads: " << omp_get_num_threads() << endl;
 	#pragma omp task
 	left = merge_sort( array, begin, mid, nthread/2 );
 
@@ -90,7 +89,9 @@ float * merge( float * left, const int leftl, float *right, const int rightl )
 			}
 		}
 
-		// put rest of the elements in left array into result array
+		/*
+		 * put rest of the elements in left array into result array
+		 */
 		while ( l <= leftl )
 		{
 			array[pos] = left[l];
@@ -98,7 +99,9 @@ float * merge( float * left, const int leftl, float *right, const int rightl )
 			l++;
 		}
 
-		// put rest of the elements in right array into result array
+		/*
+		 * put rest of the elements in right array into result array
+		 */
 		while ( r <= rightl )
 		{
 			array[pos] = right[r];
@@ -124,6 +127,7 @@ void printArray( float * array, const int length )
 
 int main(int argc, char **argv) {
 	int nthreads = atoi(argv[1]);
+	SIZE = atoi(argv[2]);
 
 	float *array = new float[SIZE];
 	for(int i = 0; i < SIZE; i++ )
