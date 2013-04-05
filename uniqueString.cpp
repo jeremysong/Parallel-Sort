@@ -1,13 +1,14 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <iomanip>
 
 #include <omp.h>
 
 using namespace std;
 
 #define STRINGMAX 1024
-#define FILELINE 10
+#define FILELINE 10000
 #define HASHTABLESIZE 10000000
 
 /**
@@ -88,17 +89,51 @@ void addToHashTable(int hash, string str)
 	}
 }
 
-void map(string *content)
+/*
+ *  Map all the string to hashtable
+ */
+void map(string *content, int nthreads)
 {
-	for(int i = 0; i < FILELINE; i++)
+    #pragma omp parallel num_threads(nthreads)
+    {
+	int i = 0;
+	#pragma omp for private(i)
+	for(i = 0; i < FILELINE; i++)
 	{
-		string str = content[i];
-		addToHashTable(hash(str), str);
+		if (content[i].length() != 0)
+		{
+			string str = content[i];
+			addToHashTable(hash(str), str);
+		}
 	}
+    }
 }	
+
+/*
+ *  Reduce: Print all the unique string and frequency
+ */
+void reduce(int nthreads)
+{
+    #pragma omp parallel num_threads(nthreads)
+    {
+	int i = 0;
+	#pragma omp for private(i)
+	for(i = 0; i < HASHTABLESIZE; i++)
+	{
+		stringPair *p = hashTable[i];
+		while(p != NULL)
+		{
+			cout << setw(15) << left <<  p->getString() << p->getFreq() << endl;
+			p = p->getNext();
+		}
+	}
+    }
+
+}
 
 /**
  *  Print out the first stringPair of there is one.
+ *  For test only
  */
 void printFirstStringPair()
 {
@@ -113,6 +148,7 @@ void printFirstStringPair()
 
 /**
  *  Print out all the stringPair.
+ *  For test only
  */
 void printAllStringPair()
 {
@@ -134,6 +170,8 @@ void printAllStringPair()
 
 int main(int argc, char **argv)
 {
+	int nthreads = atoi(argv[1]);
+
 	string content[FILELINE];
 	int linenum = 0;
 	char line[STRINGMAX];
@@ -143,11 +181,17 @@ int main(int argc, char **argv)
 		linenum++;
 	}
 
-	map(content);
+	double start = omp_get_wtime();
 
+	map(content, nthreads);
+	reduce(nthreads);
+
+	double end = omp_get_wtime();
+
+	cout << "Total running time: " << end-start << endl;
 	// for test only
 	//printFirstStringPair();
-	printAllStringPair();
+	//printAllStringPair();
 
 	return 0;
 }
