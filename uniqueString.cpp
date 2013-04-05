@@ -49,8 +49,6 @@ public:
  */
 stringPair * hashTable[HASHTABLESIZE];
 
-int lock[HASHTABLESIZE];
-
 omp_lock_t lock_group[HASHTABLESIZE];
 
 /**
