@@ -154,7 +154,7 @@ void reduce(int nthreads)
     #pragma omp parallel num_threads(nthreads)
     {
 	int i = 0;
-	#pragma omp for private(i)
+	#pragma omp for private(i) nowait
 	for(i = 0; i < HASHTABLESIZE; i++)
 	{
 		stringPair *p = hashTable[i];
