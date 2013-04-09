@@ -133,10 +133,9 @@ void map(string *content, int nthreads)
 		{
 			string str = content[i];
 			/*
-			 *  Use critical here to prevent that more than
+			 *  Use omp_lock here to prevent that more than
 			 *  one threads access the same memory location
 			 */
-			//#pragma omp critical
 			int hashValue = hash(str);
 			omp_set_lock(&lock_group[hashValue]);
 			addToHashTable(hashValue, str);
@@ -151,9 +150,9 @@ void map(string *content, int nthreads)
  */
 void reduce(int nthreads)
 {
+	int i = 0;
     #pragma omp parallel num_threads(nthreads)
     {
-	int i = 0;
 	#pragma omp for private(i) nowait
 	for(i = 0; i < HASHTABLESIZE; i++)
 	{
