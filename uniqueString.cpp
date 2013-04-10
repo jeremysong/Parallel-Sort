@@ -92,7 +92,7 @@ void addToHashTable(int hash, string str)
 		stringPair *p = hashTable[hash];
 		//omp_unset_lock(&lock_group[hash]);
 		while(p != NULL)
-	       	{
+	    {
 			if(p->strCmp(str) == 0) {
 				//omp_set_lock(&lock_group[hash]);
 				p->addFreq();
