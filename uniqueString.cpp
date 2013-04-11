@@ -7,9 +7,9 @@
 
 using namespace std;
 
-#define STRINGMAX 2048
-#define FILELINE 50000
-#define HASHTABLESIZE 10000
+#define STRINGMAX 1024
+#define HASHTABLESIZE 100000
+#define FILELINE 500000
 
 /**
  *  A class to hold each string and correponding frequency
@@ -127,7 +127,7 @@ void reduce(int nthreads)
 	int i = 0;
     #pragma omp parallel num_threads(nthreads)
     {
-	#pragma omp for private(i) nowait
+	#pragma omp for private(i)
 	for(i = 0; i < HASHTABLESIZE; i++)
 	{
 		stringPair *p = hashTable[i];
@@ -181,6 +181,7 @@ void printAllStringPair()
 int main(int argc, char **argv)
 {
 	int nthreads = atoi(argv[1]);
+	//int FILELINE = atoi(argv[2]);
 
 	string content[FILELINE];
 	int linenum = 0;

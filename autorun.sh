@@ -3,9 +3,9 @@
 make
 
 echo "Merge Sort"
-for i in 1 2 3 4 5 6 7 8 9 10
+for i in 1 2 4 8 16 32
 do
-	for n in 100 1000 10000 100000 1000000 10000000
+	for n in 100 1000 10000 100000 1000000
 	do
 		echo "----------------------"
 		echo "Number of threads = " $i
@@ -17,7 +17,7 @@ done
 
 
 echo "Unique String"
-for i in 1 2 3 4 5 6 7 8 9 10
+for i in 1 2 4 8 16 32
 do
 	echo "------------------------"
 	echo "Number of threads = " $i
