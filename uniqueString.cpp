@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define STRINGMAX 1024
+#define STRINGMAX 2048
 #define FILELINE 50000
 #define HASHTABLESIZE 10000
 
@@ -65,57 +65,31 @@ unsigned int hash(string str)
 		tracer++;
 	}
 	hash = hash % HASHTABLESIZE;
-	//cout << str << endl;
-	//cout << hash << endl;
 	return hash;
 }
 
 void addToHashTable(int hash, string str)
 {
-	//while(lock[hash] == 1)
-	//{
-		//cout << "hash: " << hash << " lock=1\n";
-	//}
-	
-	//omp_set_lock(&write_lock);
-	//lock[hash] = 1;
-	//omp_unset_lock(&write_lock);
 	if (hashTable[hash] == NULL)
 	{
-		//cout << str << " added to hashTable" << endl;
-		//omp_set_lock(&lock_group[hash]);
 		hashTable[hash] = new stringPair(str);
-		//omp_unset_lock(&lock_group[hash]);
 	} else
 	{
-		//omp_set_lock(&lock_group[hash]);
 		stringPair *p = hashTable[hash];
-		//omp_unset_lock(&lock_group[hash]);
 		while(p != NULL)
 	    {
 			if(p->strCmp(str) == 0) {
-				//omp_set_lock(&lock_group[hash]);
 				p->addFreq();
-				//lock[hash] = 0;
-				//omp_unset_lock(&lock_group[hash]);
 				return;
 			}
 			if( p->getNext() == NULL )
 			{
-				//omp_set_lock(&lock_group[hash]);
 				p->setNext(str);
-				//lock[hash] = 0;
-				//omp_unset_lock(&lock_group[hash]);
 				return;
 			}
-			//omp_set_lock(&write_lock);
 			p = p->getNext();
-			//omp_unset_lock(&write_lock);
 		}
 	}
-	//omp_set_lock(&write_lock);
-	//lock[hash] = 0;
-	//omp_unset_lock(&write_lock);
 }
 
 /*
@@ -227,7 +201,6 @@ int main(int argc, char **argv)
 		omp_init_lock(&lock_group[i]);
 	}
 }
-
 
 	map(content, nthreads);
 	reduce(nthreads);
